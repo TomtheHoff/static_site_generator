@@ -2,6 +2,8 @@ import unittest
 
 from htmlnode import HTMLNode
 from htmlnode import LeafNode
+from htmlnode import ParentNode
+
 
 class TestHTMLNode(unittest.TestCase):
     def test_props_none(self):
@@ -37,6 +39,24 @@ class TestLeafNode(unittest.TestCase):
     def test_with_link(self):
         node = LeafNode(tag = "a", value = "Click me!", props = {"href": "https://www.google.com"})
         self.assertEqual(node.to_html(), '<a href="https://www.google.com">Click me!</a>')
+
+
+
+
+class TestParentNode(unittest.TestCase):
+    def test_normal(self):
+        node = ParentNode(
+            "p",
+            [
+                LeafNode("b", "Bold text"),
+                LeafNode(None, "Normal text"),
+                LeafNode("i", "italic text"),
+                LeafNode(None, "Normal text"),
+            ],
+        )
+        self.assertEqual(node.to_html(), "<p><b>Bold text</b>Normal text<i>italic text</i>Normal text</p>")
+
+
 
 if __name__ == "__main__":
     unittest.main()
