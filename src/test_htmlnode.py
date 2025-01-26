@@ -57,6 +57,13 @@ class TestParentNode(unittest.TestCase):
         self.assertEqual(node.to_html(), "<p><b>Bold text</b>Normal text<i>italic text</i>Normal text</p>")
 
 
+#funktioniert noch nicht richtig!!!
+
+    def test_no_children(self):
+        node = ParentNode("p", "")
+        self.assertEqual(node.to_html(), ValueError)
+
+
 
 if __name__ == "__main__":
     unittest.main()
