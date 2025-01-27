@@ -60,8 +60,24 @@ class TestParentNode(unittest.TestCase):
 #funktioniert noch nicht richtig!!!
 
     def test_no_children(self):
-        node = ParentNode("p", "")
-        self.assertEqual(node.to_html(), ValueError)
+        with self.assertRaises(ValueError):
+            node = ParentNode("div", None)
+            node.to_html()
+
+    def test_empty_children(self):
+        node = ParentNode("div", [])
+        self.assertEqual(node.to_html(), "<div></div>")
+
+    def test_no_tag(self):
+        with self.assertRaises(ValueError):
+            node = ParentNode(None, [LeafNode("b", "Bold text")])
+            node.to_html()        
+
+    def test_empty_tag(self):
+        with self.assertRaises(ValueError):
+            node = ParentNode("", [LeafNode("b", "Bold text")])
+            node.to_html()      
+
 
 
 

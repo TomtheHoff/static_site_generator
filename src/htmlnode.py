@@ -56,7 +56,7 @@ class ParentNode(HTMLNode):
     # Convert the ParentNode and its children to an HTML string
     def to_html(self):
         children_string = ""
-        if self.tag is None:
+        if self.tag is None or self.tag == "":
             raise ValueError("no Tag was found")  # Ensure a tag is provided
         if self.children is None:
             raise ValueError("no Children was found")  # Ensure children are provided
