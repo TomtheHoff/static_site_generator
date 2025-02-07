@@ -1,5 +1,7 @@
 
-from textnode import TextType
+
+from textnode import TextNode, TextType
+
 
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
@@ -19,8 +21,10 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
 
         # Go through the parts and alternate between TEXT and the given text_type
         for i in range(len(parts)):
-            new_text_type = text_type if i % 2 == 1 else TextType.TEXT
-            new_nodes.append(TextNode(parts[i], new_text_type))
+            if parts[i]:  # Only add non-empty parts
+                new_text_type = text_type if i % 2 == 1 else TextType.TEXT
+                new_nodes.append(TextNode(parts[i], new_text_type))
+
 
     return new_nodes
 
