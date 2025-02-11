@@ -12,4 +12,10 @@ def extract_markdown_links(text):
 
 
 
+'''
+node = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
+new_nodes = extract_markdown_links(node)
+#output = [('to boot dev', 'https://www.boot.dev'), ('to youtube', 'https://www.youtube.com/@bootdotdev')]
+print(f"\033[93m{new_nodes=}\033[0m")
+'''
 
