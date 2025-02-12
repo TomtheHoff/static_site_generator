@@ -1,5 +1,5 @@
 
-
+import re
 from textnode import TextNode, TextType
 from regex_extract import extract_markdown_images, extract_markdown_links
 
@@ -56,7 +56,11 @@ def split_nodes_image(old_nodes):
 
 
 
-def split_nodes_link(old_nodes,):
+
+node = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
+
+
+def split_nodes_link(old_nodes):
     new_nodes = []
     
     for node in old_nodes:
@@ -64,14 +68,21 @@ def split_nodes_link(old_nodes,):
             # If it's not plain text, just add it as-is
             new_nodes.append(node)
             continue  # Skip the rest of the loop for this node
-    print (extract_markdown_links(old_nodes))
 
+        # Regex: Alles zwischen `[` und `]` ODER `(` und `)` oder normaler Text
+    pattern = r"(\[.*?\]|\(.*?\)|[^()\[\]]+)"
+
+    # `re.findall` extrahiert alle passenden Teile
+    parts = re.findall(pattern, old_nodes)
+    print (split_nodes_link(node))
 
 
 
 '''
+
 node = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
 new_nodes = extract_markdown_links(node)
+#output = [('to boot dev', 'https://www.boot.dev'), ('to youtube', 'https://www.youtube.com/@bootdotdev')]
 print(f"\033[93m{new_nodes=}\033[0m")
 
 '''
@@ -85,14 +96,29 @@ node = TextNode(
 )
 
 new_nodes = split_nodes_link([node])
-# [
-#     TextNode("This is text with a link ", TextType.TEXT),
-#     TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
-#     TextNode(" and ", TextType.TEXT),
-#     TextNode(
-#         "to youtube", TextType.LINK, "https://www.youtube.com/@bootdotdev"
-#     ),
-# ]
+ [
+     TextNode("This is text with a link ", TextType.TEXT),
+     TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
+     TextNode(" and ", TextType.TEXT),
+     TextNode(
+         "to youtube", TextType.LINK, "https://www.youtube.com/@bootdotdev"
+    ),
+]
 
 
 '''
+
+
+
+
+
+
+node = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
+
+# Regex: Alles zwischen `[` und `]` ODER `(` und `)` oder normaler Text
+pattern = r"(\[.*?\]|\(.*?\)|[^()\[\]]+)"
+
+# `re.findall` extrahiert alle passenden Teile
+parts = re.findall(pattern, node)
+
+print(f"\033[93m{parts=}\033[0m")
