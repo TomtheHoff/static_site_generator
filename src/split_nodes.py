@@ -57,7 +57,6 @@ def split_nodes_image(old_nodes):
 
 
 
-node = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
 
 
 def split_nodes_link(old_nodes):
@@ -75,6 +74,9 @@ def split_nodes_link(old_nodes):
     # `re.findall` extrahiert alle passenden Teile
     parts = re.findall(pattern, old_nodes)
     print (split_nodes_link(node))
+
+
+
 
 
 
