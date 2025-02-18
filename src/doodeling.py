@@ -1,36 +1,42 @@
 import re
+from textnode import TextNode, TextType
+from regex_extract import extract_markdown_links, extract_markdown_images
 
 node = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
-pattern = r"(\[.*?\]|\(.*?\)|[^()\[\]]+)"
-parts = re.findall(pattern, node)
-
-for i in parts:
-    if i.startswith("[") and i.endswith("]"):
-        i += ", TextType.LINK, "
-    elif i.startswith("(") and i.endswith(")"):
-        i = i[1:-1]
-        # This is the actual link
-    else:
-        i += ", TextType.TEXT"
 
 
-'''
-********** Das ist die Aufgabenstellung **********
 
-node = TextNode(
-    "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
-    TextType.TEXT,
-)
+def split_nodes_link(old_nodes):
+    """Splits text nodes into multiple nodes, separating links and normal text."""
+    new_nodes = []
 
-new_nodes = split_nodes_link([node])
- [
-     TextNode("This is text with a link ", TextType.TEXT),
-     TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
-     TextNode(" and ", TextType.TEXT),
-     TextNode(
-         "to youtube", TextType.LINK, "https://www.youtube.com/@bootdotdev"
-    ),
-]
+    for node in old_nodes:
+        if node.text_type != TextType.TEXT:
+            new_nodes.append(node)
+            continue  # Skip non-text nodes
+        
+        text = node.text
+        links = extract_markdown_links(text)  # Extract (alt_text, url) pairs
 
+        if not links:
+            new_nodes.append(TextNode(text, TextType.TEXT))  # No links, keep as plain text
+            continue
 
-'''
+        # Process the text and insert links correctly
+        while links:
+            alt_text, url = links.pop(0)  # Extract first link
+
+            before_link, rest = text.split(f"[{alt_text}]({url})", 1)
+            if before_link:
+                new_nodes.append(TextNode(before_link, TextType.TEXT))
+            
+            new_nodes.append(TextNode(alt_text, TextType.LINK, url))
+
+            text = rest  # Continue processing remaining text
+
+        if text:  # Add any remaining text
+            new_nodes.append(TextNode(text, TextType.TEXT))
+
+    return new_nodes
+
+print (split_nodes_link(node))

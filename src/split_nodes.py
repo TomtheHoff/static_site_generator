@@ -1,4 +1,3 @@
-
 import re
 from textnode import TextNode, TextType
 from regex_extract import extract_markdown_images, extract_markdown_links
@@ -48,10 +47,28 @@ print(f"\033[93m{result=}\033[0m")
 
 
 def split_nodes_image(old_nodes):
+    pattern = r"(\!\[.*?\]\(.*?\)|\[.*?\]\(.*?\)|[^!\[\]()]+)"
+    parts = re.findall(pattern, old_nodes[0].text)
 
-    sections = original_text.split(f"![{image_alt}]({image_link})", 1)
+    new_nodes = []
+    link_text = None  # Temporary storage for alt-text
 
-    pass
+    for i in parts:
+        if i.startswith("![") and i.endswith(")"):
+            alt_text = re.search(r'\[.*?\]', i).group(0)[1:-1]  # Extract alt-text
+            url = re.search(r'\(.*?\)', i).group(0)[1:-1]  # Extract URL
+            new_nodes.append(TextNode(alt_text, TextType.LINK, url))
+        elif i.startswith("[") and i.endswith(")"):
+            link_text = i[1:-1]  # Remove brackets and store alt-text
+        elif i.startswith("(") and i.endswith(")"):
+            if link_text is not None:
+                # Create a TextNode for the link with extracted text and URL
+                new_nodes.append(TextNode(link_text, TextType.LINK, i[1:-1]))
+                link_text = None  # Reset for next link
+        else:
+            new_nodes.append(TextNode(i, TextType.TEXT, None))  # Explicitly set url=None
+
+    return new_nodes
 
 
 
@@ -60,67 +77,33 @@ def split_nodes_image(old_nodes):
 
 
 def split_nodes_link(old_nodes):
-    new_nodes = []
-    
-    for node in old_nodes:
-        if node.text_type != TextType.LINK:
-            # If it's not plain text, just add it as-is
-            new_nodes.append(node)
-            continue  # Skip the rest of the loop for this node
-
-        # Regex: Alles zwischen `[` und `]` ODER `(` und `)` oder normaler Text
     pattern = r"(\[.*?\]|\(.*?\)|[^()\[\]]+)"
-
-    # `re.findall` extrahiert alle passenden Teile
-    parts = re.findall(pattern, old_nodes)
-    print (split_nodes_link(node))
+    parts = re.findall(pattern, old_nodes[0].text)
 
 
+    new_nodes = []
+    link_text = None  # Temporary storage for alt-text
 
+    for i in parts:
+        if i.startswith("[") and i.endswith("]"):
+            link_text = i[1:-1]  # Remove brackets and store alt-text
 
+        elif i.startswith("(") and i.endswith(")"):
+            if link_text is not None:
+                # Create a TextNode for the link with extracted text and URL
+                new_nodes.append(TextNode(link_text, TextType.LINK, i[1:-1]))
+                link_text = None  # Reset for next link
 
+        else:
+            new_nodes.append(TextNode(i, TextType.TEXT, None))  # Explicitly set url=None
 
-'''
-
-node = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
-new_nodes = extract_markdown_links(node)
-#output = [('to boot dev', 'https://www.boot.dev'), ('to youtube', 'https://www.youtube.com/@bootdotdev')]
-print(f"\033[93m{new_nodes=}\033[0m")
-
-'''
-
-'''
-********** Das ist die Aufgabenstellung **********
-
-node = TextNode(
-    "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
-    TextType.TEXT,
-)
-
-new_nodes = split_nodes_link([node])
- [
-     TextNode("This is text with a link ", TextType.TEXT),
-     TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
-     TextNode(" and ", TextType.TEXT),
-     TextNode(
-         "to youtube", TextType.LINK, "https://www.youtube.com/@bootdotdev"
-    ),
-]
-
-
-'''
+    return new_nodes
 
 
 
 
 
 
-node = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
 
-# Regex: Alles zwischen `[` und `]` ODER `(` und `)` oder normaler Text
-pattern = r"(\[.*?\]|\(.*?\)|[^()\[\]]+)"
 
-# `re.findall` extrahiert alle passenden Teile
-parts = re.findall(pattern, node)
 
-print(f"\033[93m{parts=}\033[0m")
