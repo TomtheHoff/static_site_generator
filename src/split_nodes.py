@@ -38,14 +38,6 @@ print(f"\033[93m{result=}\033[0m")
 
 
 
-
-
-
-
-
-
-
-
 def split_nodes_image(old_nodes):
     pattern = r"(\!\[.*?\]\(.*?\)|\[.*?\]\(.*?\)|[^!\[\]()]+)"
     parts = re.findall(pattern, old_nodes[0].text)
