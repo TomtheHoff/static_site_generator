@@ -1,100 +1,95 @@
 import re
 from textnode import TextNode, TextType
-from regex_extract import extract_markdown_images, extract_markdown_links
+from custom_print import *
 
 
 
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new_nodes = []
-    
-    for node in old_nodes:
-        if node.text_type != TextType.TEXT:
-            # If it's not plain text, just add it as-is
-            new_nodes.append(node)
-            continue  # Skip the rest of the loop for this node
-        
-        parts = node.text.split(delimiter)
-
-        if len(parts) % 2 == 0:
-            # If there's an **uneven** number of parts, we are missing a closing delimiter
-            raise ValueError(f"Unmatched delimiter {delimiter} in text: {node.text}")
-
-        # Go through the parts and alternate between TEXT and the given text_type
-        for i in range(len(parts)):
-            if parts[i]:  # Only add non-empty parts
-                new_text_type = text_type if i % 2 == 1 else TextType.TEXT
-                new_nodes.append(TextNode(parts[i], new_text_type))
-
-
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT:
+            new_nodes.append(old_node)
+            continue
+        split_nodes = []
+        sections = old_node.text.split(delimiter)
+        if len(sections) % 2 == 0:
+            raise ValueError("invalid markdown, formatted section not closed")
+        for i in range(len(sections)):
+            if sections[i] == "":
+                continue
+            if i % 2 == 0:
+                split_nodes.append(TextNode(sections[i], TextType.TEXT))
+            else:
+                split_nodes.append(TextNode(sections[i], text_type))
+        new_nodes.extend(split_nodes)
     return new_nodes
-'''
-node = TextNode("This is text with one `code block` and another `code block`", TextType.TEXT)
-result = split_nodes_delimiter([node], "`", TextType.CODE)
-#output = [TextNode("This is text with one ", TextType.TEXT), TextNode("code block", TextType.CODE), TextNode(" and another ", TextType.TEXT), TextNode("code block", TextType.CODE)]
-print(f"\033[93m{result=}\033[0m")
-'''
-
-
 
 
 def split_nodes_image(old_nodes):
-    pattern = r"(\!\[.*?\]\(.*?\)|\[.*?\]\(.*?\)|[^!\[\]()]+)"
-    parts = re.findall(pattern, old_nodes[0].text)
-
     new_nodes = []
-    link_text = None  # Temporary storage for alt-text
-
-    for i in parts:
-        if i.startswith("![") and i.endswith(")"):
-            alt_text = re.search(r'\[.*?\]', i).group(0)[1:-1]  # Extract alt-text
-            url = re.search(r'\(.*?\)', i).group(0)[1:-1]  # Extract URL
-            new_nodes.append(TextNode(alt_text, TextType.LINK, url))
-        elif i.startswith("[") and i.endswith(")"):
-            link_text = i[1:-1]  # Remove brackets and store alt-text
-        elif i.startswith("(") and i.endswith(")"):
-            if link_text is not None:
-                # Create a TextNode for the link with extracted text and URL
-                new_nodes.append(TextNode(link_text, TextType.LINK, i[1:-1]))
-                link_text = None  # Reset for next link
-        else:
-            new_nodes.append(TextNode(i, TextType.TEXT, None))  # Explicitly set url=None
-
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT:
+            new_nodes.append(old_node)
+            continue
+        original_text = old_node.text
+        images = extract_markdown_images(original_text)
+        if len(images) == 0:
+            new_nodes.append(old_node)
+            continue
+        for image in images:
+            sections = original_text.split(f"![{image[0]}]({image[1]})", 1)
+            if len(sections) != 2:
+                raise ValueError("invalid markdown, image section not closed")
+            if sections[0] != "":
+                new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            new_nodes.append(
+                TextNode(
+                    image[0],
+                    TextType.IMAGE,
+                    image[1],
+                )
+            )
+            original_text = sections[1]
+        if original_text != "":
+            new_nodes.append(TextNode(original_text, TextType.TEXT))
     return new_nodes
-
-
-
-
-
 
 
 def split_nodes_link(old_nodes):
-    pattern = r"(\[.*?\]|\(.*?\)|[^()\[\]]+)"
-    parts = re.findall(pattern, old_nodes[0].text)
-
-
     new_nodes = []
-    link_text = None  # Temporary storage for alt-text
-
-    for i in parts:
-        if i.startswith("[") and i.endswith("]"):
-            link_text = i[1:-1]  # Remove brackets and store alt-text
-
-        elif i.startswith("(") and i.endswith(")"):
-            if link_text is not None:
-                # Create a TextNode for the link with extracted text and URL
-                new_nodes.append(TextNode(link_text, TextType.LINK, i[1:-1]))
-                link_text = None  # Reset for next link
-
-        else:
-            new_nodes.append(TextNode(i, TextType.TEXT, None))  # Explicitly set url=None
-
+    for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT:
+            new_nodes.append(old_node)
+            continue
+        original_text = old_node.text
+        links = extract_markdown_links(original_text)
+        if len(links) == 0:
+            new_nodes.append(old_node)
+            continue
+        for link in links:
+            sections = original_text.split(f"[{link[0]}]({link[1]})", 1)
+            if len(sections) != 2:
+                raise ValueError("invalid markdown, link section not closed")
+            if sections[0] != "":
+                new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            new_nodes.append(TextNode(link[0], TextType.LINK, link[1]))
+            original_text = sections[1]
+        if original_text != "":
+            new_nodes.append(TextNode(original_text, TextType.TEXT))
     return new_nodes
 
 
+def extract_markdown_images(text):
+    pattern = r"!\[([^\[\]]*)\]\(([^\(\)]*)\)"
+    matches = re.findall(pattern, text)
+    return matches
 
 
-
+def extract_markdown_links(text):
+    pattern = r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)"
+    matches = re.findall(pattern, text)
+    return matches
 
 
 

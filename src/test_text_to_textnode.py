@@ -2,6 +2,7 @@ import unittest
 
 from text_to_textnodes import text_to_textnodes
 from textnode import TextNode, TextType
+from custom_print import * 
 
 class TestTextToTextNodes(unittest.TestCase):
     def test_normal(self):
@@ -18,8 +19,13 @@ class TestTextToTextNodes(unittest.TestCase):
     TextNode(" and a ", TextType.TEXT),
     TextNode("link", TextType.LINK, "https://boot.dev"),
 ]
+        print_blue(expected_nodes)
+
         result = text_to_textnodes(node)
+        print_yellow(result)
         self.assertEqual(result, expected_nodes)
+
+        
 
 
 
